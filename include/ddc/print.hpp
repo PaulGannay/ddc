@@ -94,6 +94,18 @@ struct ChunkPrinter
         return os;
     }
 
+    // 0D chunk span
+    template <class ElementType, class Extents, class Layout, class Accessor>
+    std::ostream& print_impl(
+            std::ostream& os,
+            Kokkos::mdspan<ElementType, Extents, Layout, Accessor> const& s,
+            int /*level*/,
+            std::size_t /*largest_element*/,
+            std::index_sequence<>)
+    {
+        return os << s();
+    }
+
     template <
             class ElementType,
             class Extents,
@@ -160,6 +172,15 @@ struct ChunkPrinter
         }
 
         return os;
+    }
+
+    // 0D, we don't need the element size in this case.
+    template <class ElementType, class Extents, class Layout, class Accessor>
+    size_t find_largest_displayed_element(
+            Kokkos::mdspan<ElementType, Extents, Layout, Accessor> const& s,
+            std::index_sequence<>)
+    {
+        return 0;
     }
 
     template <
@@ -277,6 +298,7 @@ std::ostream& print(
     std::size_t largest_element = printer.find_largest_displayed_element(
             allocated_mdspan,
             std::make_index_sequence<extents::rank()>());
+
     printer.print_impl(
             os,
             allocated_mdspan,
